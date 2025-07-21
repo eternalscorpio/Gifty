@@ -2,7 +2,11 @@
     "version": 2,
     "builds": [
       {
-        "src": "*.html",
+        "src": "public/*.html",
+        "use": "@vercel/static"
+      },
+      {
+        "src": "public/*.css",
         "use": "@vercel/static"
       },
       {
@@ -13,15 +17,15 @@
     "routes": [
       {
         "src": "/gift/([a-zA-Z0-9]+)",
-        "dest": "/gift.html"
+        "dest": "/public/gift.html"
       },
       {
         "src": "/api/(.*)",
         "dest": "/api/$1"
       },
       {
-        "src": "/",
-        "dest": "/index.html"
+        "src": "/(.*)",
+        "dest": "/public/$1"
       }
     ]
   }
