@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Surprise Gift</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Your Surprise Gift</h1>
+        <div id="loading">Loading your gift...</div>
+        <div id="waiting" style="display: none;">
+            <p>A surprise is waiting for you!</p>
+            <div id="countdown" class="countdown"></div>
+        </div>
+        <div id="message-container" style="display: none;">
+            <h2 id="recipient-name"></h2>
+            <p id="gift-message"></p>
+            <p>This link will expire in 1 hour</p>
+        </div>
+        <div id="expired" style="display: none;">
+            <h2>This gift has expired</h2>
+            <p>The surprise link is no longer available.</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadGift() {
+            try {
+                const giftId = window.location.pathname.split('/').pop();
+                const response = await fetch(`/api/gift/${giftId}`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch gift');
+                }
+
+                const data = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.status === 410) {
+                    document.getElementById('expired').style.display = 'block';
+                } else if (data.timeRemaining > 0) {
+                    showCountdown(data.timeRemaining, giftId);
+                } else if (data.isRevealed) {
+                    showMessage(data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').textContent = 'Error loading gift';
+            }
+        }
+
+        function showCountdown(timeRemaining, giftId) {
+            document.getElementById('waiting').style.display = 'block';
+            const countdownElement = document.getElementById('countdown');
+            let timeLeft = timeRemaining;
+
+            const timer = setInterval(async () => {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    const response = await fetch(`/api/gift/${giftId}`);
+                    const updatedData = await response.json();
+                    if (updatedData.isRevealed) showMessage(updatedData);
+                    return;
+                }
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                let countdownText = '';
+                if (days > 0) {
+                    countdownText += `${days}d `;
+                }
+                countdownText += `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+
+                countdownElement.textContent = countdownText;
+                timeLeft -= 1000;
+            }, 1000);
+        }
+
+        function showMessage(data) {
+            document.getElementById('waiting').style.display = 'none';
+            document.getElementById('recipient-name').textContent = `Dear ${data.recipientName}`;
+            document.getElementById('gift-message').textContent = data.message;
+            document.getElementById('message-container').style.display = 'block';
+        }
+
+        loadGift();
+
+        function showMessage(data) {
+            document.getElementById('waiting').style.display = 'none';
+            document.getElementById('recipient-name').textContent = `Dear ${data.recipientName}`;
+            document.getElementById('gift-message').textContent = data.message;
+            document.getElementById('message-container').style.display = 'block';
+
+            // Create confetti effect
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#ffd166', '#292f36', '#f7fff7'];
+            const confettiCount = 100;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                document.body.appendChild(confetti);
+
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+
+</html>

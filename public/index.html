@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surprise Gift Creator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Create Your Surprise Gift</h1>
+        <form id="gift-form">
+            <div class="form-group">
+                <label for="recipient-name">Recipient Name:</label>
+                <input type="text" id="recipient-name" required>
+            </div>
+            <div class="form-group">
+                <label for="reveal-datetime">Reveal Date and Time:</label>
+                <input type="datetime-local" id="reveal-datetime" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Your Message:</label>
+                <textarea id="message" required></textarea>
+            </div>
+            <button type="submit" class="btn">Create Gift Link</button>
+        </form>
+        <div id="link-container" style="display: none;">
+            <h2>Gift Link Created!</h2>
+            <p>Share this link: <a id="gift-link" href="#"></a></p>
+            <button onclick="copyLink()" class="btn">Copy Link</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const yyyyMMddTHHmm = now.toISOString().slice(0, 16);
+            document.getElementById('reveal-datetime').min = yyyyMMddTHHmm;
+        });
+
+        document.getElementById('gift-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const recipientName = document.getElementById('recipient-name').value;
+            const revealDatetime = document.getElementById('reveal-datetime').value;
+            const message = document.getElementById('message').value;
+            const revealAt = new Date(revealDatetime).getTime();
+
+            if (revealAt <= Date.now()) {
+                alert('Please select a future date and time.');
+                return;
+            }
+
+            const response = await fetch('/api/create-gift', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipientName, revealAt, message })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                const linkContainer = document.getElementById('link-container');
+                const giftLink = document.getElementById('gift-link');
+                giftLink.href = data.giftUrl;
+                giftLink.textContent = data.giftUrl;
+                linkContainer.style.display = 'block';
+            } else {
+                alert('Error creating gift: ' + data.error);
+            }
+        });
+
+        function copyLink() {
+            const giftLink = document.getElementById('gift-link').href;
+            navigator.clipboard.writeText(giftLink);
+            alert('Link copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
