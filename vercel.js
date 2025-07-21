@@ -1,19 +1,26 @@
 {
     "version": 2,
+    "builds": [
+      {
+        "src": "*.html",
+        "use": "@vercel/static"
+      },
+      {
+        "src": "api/**/*.js",
+        "use": "@vercel/node"
+      }
+    ],
     "routes": [
       {
-        "src": "/gift/(.*)",
-        "dest": "/gift.html",
-        "headers": {
-          "Cache-Control": "no-cache"
-        }
+        "src": "/gift/([a-zA-Z0-9]+)",
+        "dest": "/gift.html"
       },
       {
-        "src": "/api/.*",
-        "dest": "/api"
+        "src": "/api/(.*)",
+        "dest": "/api/$1"
       },
       {
-        "src": "/(.*)",
+        "src": "/",
         "dest": "/index.html"
       }
     ]

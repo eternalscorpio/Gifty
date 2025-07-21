@@ -30,8 +30,8 @@
     <script>
         async function loadGift() {
             // Get giftId from URL path
-            const pathSegments = window.location.pathname.split('/');
-            const giftId = pathSegments[pathSegments.length - 1];
+            const path = window.location.pathname;
+            const giftId = path.substring(path.lastIndexOf('/') + 1);
 
             try {
                 const response = await fetch(`/api/gift/${giftId}`);
