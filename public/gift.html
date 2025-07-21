@@ -29,12 +29,15 @@
 
     <script>
         async function loadGift() {
+            // Get giftId from URL path
+            const pathSegments = window.location.pathname.split('/');
+            const giftId = pathSegments[pathSegments.length - 1];
+
             try {
-                const giftId = window.location.pathname.split('/').pop();
                 const response = await fetch(`/api/gift/${giftId}`);
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch gift');
+                    throw new Error('Gift not found');
                 }
 
                 const data = await response.json();

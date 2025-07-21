@@ -1,8 +1,20 @@
 {
     "version": 2,
-        "routes": [
-            { "handle": "filesystem" },
-            { "src": "/gift/.*", "dest": "/gift.html" },
-            { "src": "/api/.*", "dest": "/api" }
-        ]
-}
+    "routes": [
+      {
+        "src": "/gift/(.*)",
+        "dest": "/gift.html",
+        "headers": {
+          "Cache-Control": "no-cache"
+        }
+      },
+      {
+        "src": "/api/.*",
+        "dest": "/api"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/index.html"
+      }
+    ]
+  }
