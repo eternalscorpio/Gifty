@@ -1,5 +1,5 @@
+const { kv } = require('@vercel/kv');
 const crypto = require('crypto');
-const gifts = new Map(); // Temporary in-memory storage
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -8,8 +8,8 @@ module.exports = async (req, res) => {
 
   try {
     const { recipientName, revealAt, message } = req.body;
-    
-    // Validation (same as your original code)
+
+    // Validation
     if (!recipientName || !revealAt || !message) {
       return res.status(400).json({ error: 'All fields are required' });
     }
@@ -21,14 +21,21 @@ module.exports = async (req, res) => {
 
     const giftId = crypto.randomBytes(16).toString('hex');
     const expiresAt = revealAt + 3600000; // 1 hour after reveal
-    
-    gifts.set(giftId, { recipientName, message, revealAt, expiresAt });
-    
-    res.json({ 
-      giftUrl: `https://${req.headers.host}/gift/${giftId}`, 
-      giftId 
+
+    // Store in Vercel KV
+    await kv.set(`gift:${giftId}`, JSON.stringify({
+      recipientName,
+      message,
+      revealAt,
+      expiresAt
+    }), { ex: Math.ceil((expiresAt - currentTime) / 1000) }); // Set TTL
+
+    res.json({
+      giftUrl: `https://${req.headers.host}/gift/${giftId}`,
+      giftId
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Server error' });
   }
 };
